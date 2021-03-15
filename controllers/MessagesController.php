@@ -31,10 +31,15 @@ class MessagesController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
+                        'actions' => ['api', 'receive', 'status'],
+                        'allow' => true,
+                    ],
+                    [
                         'actions' => ['index', 'create', 'csv', 'groups', 'view', 'update', 'delete', 'settings'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
+
                 ],
             ],
             'verbs' => [
@@ -60,7 +65,7 @@ class MessagesController extends Controller
             'dataProvider' => $dataProvider,
             'filters' => [
                 Messages::STATUS_WAITING,
-                Messages::SENDING,
+                Messages::STATUS_SENDING,
                 Messages::STATUS_SENT,
                 Messages::STATUS_CONFIRMED,
                 Messages::STATUS_ERROR,
@@ -250,12 +255,28 @@ class MessagesController extends Controller
     }
 
 
+    /**
+     * Receive through URL an command to send a message
+     */
+    public function actionApi() {
+        Utils::debug(Yii::$app->request->get(), 1);
+    }
 
-    public function actionChangeStatusFromService()
+    /**
+     * Change status for an message
+     */
+    public function actionStatus()
     {
         Utils::debug(Yii::$app->request->get(), 1);
     }
     
+    /**
+     * Receive a new message from service
+     */
+    public function actionReceive()
+    {
+        Utils::debug(Yii::$app->request->get(), 1);
+    }
 
     /**
      * Finds the Messages model based on its primary key value.

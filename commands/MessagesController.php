@@ -28,10 +28,16 @@ class MessagesController extends Controller
 
         foreach($all as $each):
             $each->status_desc = Messages::STATUS_SENDING;
-            $service->prepareAndSendToService($each);
             
-            // @only finish
-            //$each->validate() && $each->save();
+            $each->validate() && $each->save();
+
+            $response = $service->sendEach($each);
+
+            if(!$response) {
+                $each->status_desc = Messages::STATUS_ERROR;
+                $each->validate() && $each->save();
+            }
+
         endforeach;
         
         return ExitCode::OK;
