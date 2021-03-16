@@ -45,7 +45,9 @@ class MessagesController extends Controller
 
 
     /**
-     * This will be at 15 minutes / update
+     * This will be at each day at 08:00 , 
+     * because it's not necessary to checking, 
+     * `cuz we receive always a new status  when it is changed through actionStatus
      */
     public function actionUpdateStatusOfMessages() {
         echo "Update status of messages\n";
