@@ -11,8 +11,10 @@ use app\models\MessageFormCsv;
 use app\models\MessageFormGroup;
 use app\models\MessagesSearch;
 use app\models\Groups;
+use app\models\Settings;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\filters\VerbFilter;
 use yii\web\UploadedFile;
 use yii\db\Expression;
@@ -32,7 +34,7 @@ class MessagesController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        'actions' => ['api', 'receive', 'status'],
+                        'actions' => ['api', 'receive', 'status', 'r'],
                         'allow' => true,
                     ],
                     [
@@ -260,7 +262,56 @@ class MessagesController extends Controller
      * Receive through URL an command to send a message
      */
     public function actionApi() {
-        Utils::debug(Yii::$app->request->get(), 1);
+     
+        $get = Yii::$app->request->get();
+        $post = Yii::$app->request->post();
+        if(!empty($post)) {
+            $get = $post;
+        }
+        
+        $options = Settings::optionsMessages();
+
+        if(empty($options->api->tokens)) 
+        {
+           return false; 
+        }
+     
+        if(empty($get['token']) || empty($get['destination']) || empty($get['message']))
+        {
+            throw new NotFoundHttpException('The requested is not complete.');
+        }
+
+
+        $hasAccess = false;
+        foreach($options->api->tokens as $token):
+            if($get['token'] === $token):
+                $hasAccess = true;
+            endif;
+        endforeach;
+
+        if(!$hasAccess) {
+            throw new ForbiddenHttpException('Token is not valid.');
+        }
+
+
+        $message = new Messages();
+
+        $message->destination = Utils::filter_destination($get['destination']);
+        $message->message = $get['message'];
+        $message->status_desc = Messages::STATUS_WAITING;
+        $message->when_send = new Expression('NOW()');
+
+        $found = Groups::find()->where(['destination' => $message->destination])->one();
+        if(!empty($found)) 
+        {
+            $message->name = $found->full_name;
+        }
+
+        if($message->validate() && $message->save()) {
+            echo $message->status_desc;
+        } else {
+            throw new NotFoundHttpException('The requested is not complete.');
+        }
 
     }
 
@@ -331,7 +382,8 @@ class MessagesController extends Controller
             }
 
             if($message->validate() && $message->save()) {
-                $this->forwardReceivedMessage($message);
+                $this->forwardReceivedMessageThroughEmail($message);
+                $this->forwardReceivedMessageThroughUrl($message);
                 echo $message->status_desc;
             } else {
                 throw new NotFoundHttpException('The requested is not complete.');
@@ -340,10 +392,52 @@ class MessagesController extends Controller
 
     }
 
-    private function forwardReceivedMessage(Message $message)
+    private function forwardReceivedMessageThroughEmail(Message $message)
     {
+        $options = Settings::optionsMessages();
+        if(empty($options->api->send_messages_received_to_mail)) {
+           return false; 
+        }
 
+        foreach($options->api->send_messages_received_to_mail as $mail):
+            Yii::$app->mailer->compose()
+            ->setTo($mail)
+            ->setFrom([Yii::$app->params['senderEmail'] => Yii::$app->params['senderName']])
+            ->setSubject('Ati primit un mesaj de la ' . $message->destination)
+            ->setTextBody(json_encode($message->attributes))
+            ->send();
+        endforeach;
+        
 
+        return true;
+    }
+
+    /**
+     * It's called by actionReceive
+     * If someone want to forward received message from this service to their service
+     */
+    private function forwardReceivedMessageThroughUrl(Messages $message)
+    {
+        $options = Settings::optionsMessages();
+
+        if(empty($options->api->forward_messages_received_to_url)) {
+           return false; 
+        }
+
+        foreach($options->api->forward_messages_received_to_url as $url):
+            $post = ['from' => $message->destination, 'message' =>  $message->message];
+
+            try { 
+                $ch = curl_init( $url );
+                curl_setopt( $ch, CURLOPT_POST, 1);
+                curl_setopt( $ch, CURLOPT_POSTFIELDS, $post);
+                curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, 1);
+                curl_setopt( $ch, CURLOPT_HEADER, 0);
+                curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1);
+                curl_exec( $ch );
+            } catch (Exception $e) {}
+
+        endforeach;
     }
 
     /**

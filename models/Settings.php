@@ -56,4 +56,12 @@ class Settings extends \yii\db\ActiveRecord
     {
         return new SettingsQuery(get_called_class());
     }
+
+
+    static public function optionsMessages()
+    {
+        $messages = Settings::find()->where(['desc' => 'messages'])->one();
+
+        return json_decode($messages->options);
+    }
 }
