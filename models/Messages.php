@@ -22,6 +22,7 @@ class Messages extends \yii\db\ActiveRecord
     public const STATUS_CONFIRMED = 'CONFIRMED';
     public const STATUS_ERROR = 'ERROR';
     public const STATUS_RECEIVED = 'RECEIVED';
+    public const STATUS_UNKNOWN = 'UNKNOWN';
 
     /**
      * {@inheritdoc}

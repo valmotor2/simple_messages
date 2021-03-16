@@ -25,7 +25,7 @@ class ServiceForm
     # id_last_inserted este unic
     public static function set_url(Messages $message)
     {
-        return Yii::$app->params['url_host'].'/index.php?r=messages%2Fstatus?message_id='.$message->id.'&type=%d';
+        return Yii::$app->params['url_host'].'/index.php?r=messages%2Fstatus&message_id='.$message->id.'&type=%d';
     }
 
 

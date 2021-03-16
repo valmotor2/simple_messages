@@ -15,6 +15,7 @@ use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\web\UploadedFile;
+use yii\db\Expression;
 
 /**
  * MessagesController implements the CRUD actions for Messages model.
@@ -260,6 +261,7 @@ class MessagesController extends Controller
      */
     public function actionApi() {
         Utils::debug(Yii::$app->request->get(), 1);
+
     }
 
     /**
@@ -267,7 +269,43 @@ class MessagesController extends Controller
      */
     public function actionStatus()
     {
-        Utils::debug(Yii::$app->request->get(), 1);
+        $get = Yii::$app->request->get();
+
+        if(empty($get['message_id']) || empty($get['type'])) {
+            throw new NotFoundHttpException('The requested is not complete.');
+        }
+
+        $message_id = (int) $get['message_id'];
+        $type = (int) $get['type'];
+        $now = (new \DateTime())->format('d.m.Y H:i:s');
+
+        $message = Messages::find($message_id)->one();
+
+        if(empty($message)) {
+            throw new NotFoundHttpException('The requested is not found.');
+        }
+
+        switch($type) {
+            case 8:
+                $message->status_desc = Messages::STATUS_SENT;
+                break;
+            case 1:
+                $message->status_desc = Messages::STATUS_CONFIRMED;
+                break;
+            case 31:
+            case 4:
+                $message->status_desc = Messages::STATUS_SENDING;
+                break;
+            case 2:
+            case 16:
+                $message->status_desc = Messages::STATUS_ERROR;
+                break;
+            default:
+                $message->status_desc = Messages::STATUS_UNKNOWN;
+        }   
+
+        $message->validate() && $message->save();
+        echo $message->status_desc;
     }
     
     /**
@@ -275,7 +313,37 @@ class MessagesController extends Controller
      */
     public function actionReceive()
     {
-        Utils::debug(Yii::$app->request->get(), 1);
+        $get = Yii::$app->request->get();
+
+        if(!empty($get['phone']) || !empty($get['text'])) 
+        {
+            $message = new Messages();
+
+            $message->destination = Utils::filter_destination($get['phone']);
+            $message->message = $get['text'];
+            $message->status_desc = Messages::STATUS_RECEIVED;
+            $message->when_send = new Expression('NOW()');
+
+            $found = Groups::find()->where(['destination' => $message->destination])->one();
+            if(!empty($found)) 
+            {
+                $message->name = $found->full_name;
+            }
+
+            if($message->validate() && $message->save()) {
+                $this->forwardReceivedMessage($message);
+                echo $message->status_desc;
+            } else {
+                throw new NotFoundHttpException('The requested is not complete.');
+            }
+        }
+
+    }
+
+    private function forwardReceivedMessage(Message $message)
+    {
+
+
     }
 
     /**
