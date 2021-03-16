@@ -11,6 +11,12 @@ return [
     // to receive status from kannel service
 
     'url_host' => 'http://95.77.99.27:8080/',
+
+    'url_kannel' => 'http://localhost:13003/status.xml',
+    'url_kannel_status' => 'http://localhost:13003/status',
     'kannel_admin_port' => 13003,
-    'kannel_password' => 'simple_messages'
+    'kannel_password' => 'simple_messages',
+    
+
+    'limit_service_sms_send_per_minute' => 100
 ];

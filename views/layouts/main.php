@@ -41,6 +41,7 @@ AppAsset::register($this);
             ['label' => 'Messages', 'url' => ['/messages/index']],
             ['label' => 'Groups', 'url' => ['/groups/index']],
             ['label' => 'Settings', 'url' => ['/settings/index']],
+            ['label' => 'Reports', 'url' => ['/reports/index']],
             Yii::$app->user->isGuest ? (
                 ['label' => 'Login', 'url' => ['/site/login']]
             ) : (

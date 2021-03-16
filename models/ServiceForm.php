@@ -15,7 +15,8 @@ class ServiceForm
     private $message = [];
 
 
-    public function isBulk(Boolean $status) {
+    public function isBulk(Boolean $status) 
+    {
         $this->isBulk = $statsu;
     }
 
@@ -29,7 +30,8 @@ class ServiceForm
     }
 
 
-    public function prepareAndSendToService(Messages $message) {
+    public function prepareAndSendToService(Messages $message) 
+    {
 
         $prepare_message = [
             'sql_id' => 0,
@@ -54,7 +56,8 @@ class ServiceForm
     }
 
 
-    public function sendEach(Messages $message) {
+    public function sendEach(Messages $message) 
+    {
         $response = $this->prepareAndSendToService($message);
 
         if($response) {
@@ -65,7 +68,8 @@ class ServiceForm
 
     }
 
-    public function sendToService($messages) {
+    public function sendToService($messages) 
+    {
 
         $header = [];
 
@@ -90,5 +94,27 @@ class ServiceForm
     }
 
 
+    public function checkStatus(Messages $message)
+    {
+
+        // search in sms_sent table after status dlr
+        // check DLR_MASK 
+        // if the DLR NOT EXIST AND is older than 72 ore 
+        // return Messages:STATUS_UNKNONW;
+
+        $sql = `SELECT momt, dlr_mask WHERE foreign_id = '$message->foreign_id'`;
+        $results = Yii::$app->db->createCommand($sql)->all();
+
+        // error, we can not have nothing?!
+        if(empty($results)):
+            return Messages::STATUS_UNKNOWN;
+        endif;
+
+        foreach($results as $result):
+            // @TODO    
+        endforeach;
+
+        return Message::STATUS_SENDING;
+    }
     
 }
