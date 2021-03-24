@@ -33,11 +33,13 @@ class ServiceForm
     public function prepareAndSendToService(Messages $message) 
     {
 
+        //$destination = str_replace('+', '', $message->destination);
+        $destination = $message->destination;
         $prepare_message = [
             'sql_id' => 0,
             'momt' => 'MT',
             'sender' => 'app',
-            'receiver' => $message->destination,
+            'receiver' => $destination,
             'smsc_id' => '',
             'msgdata' => urlencode(mb_convert_encoding($message->message, 'UTF-8', 'UTF-8')),
             'dlr_url' => $this->set_url($message),

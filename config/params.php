@@ -9,8 +9,7 @@ return [
 
     // this is used for console 
     // to receive status from kannel service
-
-    'url_host' => 'http://95.77.99.27:8080/',
+    'url_host' => 'http://127.0.0.1',
 
     'url_kannel' => 'http://localhost:13003/status.xml',
     'url_kannel_status' => 'http://localhost:13003/status',
@@ -18,5 +17,5 @@ return [
     'kannel_password' => 'simple_messages',
     
 
-    'limit_service_sms_send_per_minute' => 100
+    'limit_service_sms_send_per_minute' => 100,
 ];
