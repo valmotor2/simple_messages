@@ -49,10 +49,19 @@ class MessagesController extends Controller
      */
     public function actionUpdateStatusOfMessages() {
 
+        $date = new \DateTime();
+
+        $date->add(new \DateInterval('P2D'));
+
+        $date = $date->format('Y-m-d H:i:s');
+
+        
         $all = Messages::find()
-            ->where(['status_desc' => Messages::STATUS_SENDING])
+            ->where(['status_desc' => [ Messages::STATUS_SENDING, Messages::STATUS_SENT]])
+            ->andWhere(['<', 'creat', $date])
             ->all();
 
+  
         foreach($all as $message):
             $service = new ServiceForm();
             $status = $service->checkStatus($message);

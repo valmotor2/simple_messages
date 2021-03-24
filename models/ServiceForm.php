@@ -104,18 +104,26 @@ class ServiceForm
         // return Messages:STATUS_UNKNONW;
         $search_by = 'http://127.0.0.1/index.php?r=messages%2Fstatus&message_id='.$message->id.'&type=%d';
 
-        $sql = 'SELECT momt, dlr_mask FROM sent_sms WHERE dlr_url = "'.$search_by.'" AND momt = "DLR" ORDER BY time DESC';
+        $sql = '
+            SELECT momt, dlr_mask 
+            FROM sent_sms 
+            WHERE dlr_url = "'.$search_by.'" 
+                AND momt = "DLR" 
+            ORDER BY time DESC
+            LIMIT 1
+            ';
         $results = Yii::$app->db->createCommand($sql)->queryAll();
 
   
         // error, we can not have nothing?!
+        // check later
         if(empty($results)):
-            return Messages::STATUS_UNKNOWN;
+            return Messages::STATUS_SENDING;
         endif;
 
         foreach($results as $result):
-            
-            print_r(ServiceForm::getStatusByService($result['dlr_mask']));
+
+            return ServiceForm::getStatusByService($result['dlr_mask']);
             // @TODO    
         endforeach;
 
