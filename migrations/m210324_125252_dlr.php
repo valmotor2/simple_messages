@@ -15,12 +15,27 @@ class m210324_125252_dlr extends Migration
         $this->createTable('dlr', [
             'smsc' => $this->string(40),
             'ts' => $this->string(40),
+            'source' => $this->string(40),
             'destination' => $this->string(40),
             'service' => $this->string(40),
-            'service' => $this->string(),
+            'url' => $this->string(),
             'mask' => $this->integer(),
+            'boxc' => $this->string(40),
             'status' => $this->integer()
         ]);
+
+        $this->createIndex(
+            'idx-dlr-smsc',
+            'dlr',
+            'smsc'
+        );
+        
+        $this->createIndex(
+            'idx-dlr-ts',
+            'dlr',
+            'ts'
+        );
+
     }
 
     /**

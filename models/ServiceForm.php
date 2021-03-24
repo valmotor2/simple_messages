@@ -84,8 +84,7 @@ class ServiceForm
                 $header[] = $key;
             endforeach;
         }
-        
-        
+
 
         return Yii::$app->db->createCommand()->batchInsert(
             'send_sms', 
@@ -103,20 +102,51 @@ class ServiceForm
         // check DLR_MASK 
         // if the DLR NOT EXIST AND is older than 72 ore 
         // return Messages:STATUS_UNKNONW;
+        $search_by = 'http://127.0.0.1/index.php?r=messages%2Fstatus&message_id='.$message->id.'&type=%d';
 
-        $sql = `SELECT momt, dlr_mask WHERE foreign_id = '$message->foreign_id'`;
-        $results = Yii::$app->db->createCommand($sql)->all();
+        $sql = 'SELECT momt, dlr_mask FROM sent_sms WHERE dlr_url = "'.$search_by.'" AND momt = "DLR" ORDER BY time DESC';
+        $results = Yii::$app->db->createCommand($sql)->queryAll();
 
+  
         // error, we can not have nothing?!
         if(empty($results)):
             return Messages::STATUS_UNKNOWN;
         endif;
 
         foreach($results as $result):
+            
+            print_r(ServiceForm::getStatusByService($result['dlr_mask']));
             // @TODO    
         endforeach;
 
-        return Message::STATUS_SENDING;
+        die;
+
+        return Messages::STATUS_SENDING;
+    }
+
+    static function getStatusByService($type)
+    {
+        $status_desc = Messages::STATUS_UNKNOWN;
+        switch($type) {
+            case 8:
+                $status_desc = Messages::STATUS_SENT;
+                break;
+            case 1:
+                $status_desc = Messages::STATUS_CONFIRMED;
+                break;
+            case 31:
+            case 4:
+                $status_desc = Messages::STATUS_SENDING;
+                break;
+            case 2:
+            case 16:
+                $status_desc = Messages::STATUS_ERROR;
+                break;
+            default:
+                $status_desc = Messages::STATUS_UNKNOWN;
+        }   
+
+        return $status_desc;
     }
     
 }

@@ -336,24 +336,7 @@ class MessagesController extends Controller
             throw new NotFoundHttpException('The requested is not found.');
         }
 
-        switch($type) {
-            case 8:
-                $message->status_desc = Messages::STATUS_SENT;
-                break;
-            case 1:
-                $message->status_desc = Messages::STATUS_CONFIRMED;
-                break;
-            case 31:
-            case 4:
-                $message->status_desc = Messages::STATUS_SENDING;
-                break;
-            case 2:
-            case 16:
-                $message->status_desc = Messages::STATUS_ERROR;
-                break;
-            default:
-                $message->status_desc = Messages::STATUS_UNKNOWN;
-        }   
+        $message->status_desc = ServiceForm::getStatusByService($type);
 
         $message->validate() && $message->save();
         echo $message->status_desc;

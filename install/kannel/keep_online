@@ -1,0 +1,38 @@
+
+#!/bin/bash
+
+CONF_B=/etc/kannel/kannel.conf
+CONF_Q=/etc/kannel/sqlbox.conf
+
+PID_B=$(pidof bearerbox)
+PID_SQ=$(pidof sqlbox)
+PID_SMS=$(pidof smsbox)
+
+
+if [[ $PID_B && $PID_SQ && $PID_SMS ]]
+  then
+        echo 'Everthing are fine '
+  else
+        echo 'Broked all ... '
+        # let's restaurating ...
+        if [[ $PID_SMS ]]
+          then
+                kill -9 $PID_SMS
+        fi
+
+        if [[ $PID_SQ ]]
+          then
+                kill -9 $PID_SQ
+        fi
+
+        # now start all service keeping order ...
+        /usr/local/sbin/bearerbox -d $CONF_B
+        #sleep 1 sec
+        sleep 1
+        /usr/local/sbin/sqlbox -d $CONF_Q
+        sleep 1
+        /usr/local/sbin/smsbox -d $CONF_B
+
+fi
+
+

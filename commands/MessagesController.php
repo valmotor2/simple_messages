@@ -23,21 +23,19 @@ class MessagesController extends Controller
             ->andWhere(['<', 'when_send', $date])
             ->limit($limit)
             ->all();
-
-        $service = new ServiceForm();
-
+  
         foreach($all as $each):
-            $each->status_desc = Messages::STATUS_SENDING;
-            
-            $each->validate() && $each->save();
 
+            $each->status_desc = Messages::STATUS_SENDING;
+            $service = new ServiceForm();
             $response = $service->sendEach($each);
 
             if(!$response) {
                 $each->status_desc = Messages::STATUS_ERROR;
                 $each->validate() && $each->save();
+            } else {
+                $each->validate() && $each->save();   
             }
-
         endforeach;
         
         return ExitCode::OK;
@@ -45,7 +43,7 @@ class MessagesController extends Controller
 
 
     /**
-     * This will be at each day at 08:00 , 
+     * This will be at each hours , 
      * because it's not necessary to checking, 
      * `cuz we receive always a new status  when it is changed through actionStatus
      */
@@ -55,9 +53,8 @@ class MessagesController extends Controller
             ->where(['status_desc' => Messages::STATUS_SENDING])
             ->all();
 
-        $service = new ServiceForm();
-
         foreach($all as $message):
+            $service = new ServiceForm();
             $status = $service->checkStatus($message);
             $message->status_desc = $status;
 
